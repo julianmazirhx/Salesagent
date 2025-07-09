@@ -3,14 +3,17 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
+let supabase;
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables. Please check your .env file.');
   // Create a dummy client for build purposes
-  export const supabase = createClient('https://dummy.supabase.co', 'dummy-key');
+  supabase = createClient('https://dummy.supabase.co', 'dummy-key');
 } else {
-  export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
 }
 
+export { supabase };
 
 export type Database = {
   public: {
