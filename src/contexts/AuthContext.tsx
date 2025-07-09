@@ -56,11 +56,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', userId)
         .single();
 
-      if (!error && data) {
+      if (data && !error) {
         setIsAdmin(data.role === 'admin');
+      } else {
+        // Default to member if no membership found
+        setIsAdmin(false);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
+      setIsAdmin(false);
     }
   };
 
@@ -79,15 +83,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Create user profile and membership
     if (data.user) {
-      await supabase.from('users').insert({
-        id: data.user.id,
-        full_name: fullName,
-      });
+      try {
+        await supabase.from('users').insert({
+          id: data.user.id,
+          full_name: fullName,
+        });
 
-      await supabase.from('memberships').insert({
-        user_id: data.user.id,
-        role: 'member',
-      });
+        await supabase.from('memberships').insert({
+          user_id: data.user.id,
+          role: 'member',
+        });
+      } catch (dbError) {
+        console.warn('Could not create user profile:', dbError);
+        // Don't throw error here as auth was successful
+      }
     }
   };
 

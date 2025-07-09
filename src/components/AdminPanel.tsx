@@ -53,15 +53,24 @@ export function AdminPanel() {
       if (usersError) throw usersError;
 
       // Get user emails from auth.users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
+      let authUsers: any = { users: [] };
+      try {
+        const result = await supabase.auth.admin.listUsers();
+        if (result.error) {
+          console.warn('Could not fetch auth users:', result.error);
+        } else {
+          authUsers = result.data;
+        }
+      } catch (error) {
+        console.warn('Auth admin functions not available:', error);
+      }
 
       const usersWithRoles = usersData?.map(user => {
         const authUser = authUsers.users.find(au => au.id === user.id);
         return {
           id: user.id,
           full_name: user.full_name,
-          email: authUser?.email || 'Unknown',
+          email: authUser?.email || user.id.substring(0, 8) + '...@example.com',
           created_at: user.created_at,
           role: (user.memberships as any)?.[0]?.role || 'member',
         };

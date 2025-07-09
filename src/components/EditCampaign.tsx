@@ -102,20 +102,25 @@ export function EditCampaign() {
       formData.append('csv', csvFile);
 
       // Send directly to webhook
-      const response = await fetch('https://mazirhx.app.n8n.cloud/webhook/start-campaign-upload', {
-        method: 'POST',
-        body: formData,
-      });
+      let response;
+      try {
+        response = await fetch('https://mazirhx.app.n8n.cloud/webhook/start-campaign-upload', {
+          method: 'POST',
+          body: formData,
+        });
+      } catch (networkError) {
+        throw new Error('Network error: Could not connect to webhook service');
+      }
 
       if (!response.ok) {
-        throw new Error('Webhook request failed');
+        throw new Error(`Webhook request failed with status: ${response.status}`);
       }
 
       setCsvFile(null);
       alert('CSV uploaded successfully and webhook triggered!');
     } catch (error) {
       console.error('Error uploading CSV:', error);
-      alert('Error uploading CSV. Please try again.');
+      alert(`Error uploading CSV: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setUploadLoading(false);
     }
